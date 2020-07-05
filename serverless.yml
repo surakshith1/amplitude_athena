@@ -1,0 +1,43 @@
+service: amplitude_athena
+
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: ap-south-1
+  versionFunctions: false
+  environment:
+    PROJECT_ID: 123456
+    AMPLITUDE_KEY: amplitude_key
+    AMPLITUDE_SECRET: amplitude_secret
+    S3_BI_BUCKET: amplitude_data_bucket
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - s3:PutObject
+      Resource:
+        - arn:aws:s3:::${self:provider.environment.S3_BI_BUCKET}/*
+
+functions:
+  daily_amplitude_handler:
+    handler: handler.daily_amplitude_handler
+    memorySize: 256
+    timeout: 120
+    events:
+      - schedule:
+          rate: cron(0 6 ? * * *)
+          enabled: true
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerizePip: true
+    dockerSsh: true
+    slim: true
+    noDeploy:
+      - pytest
+      - moto
+    fileName: requirements-prod.txt
