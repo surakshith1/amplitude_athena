@@ -67,4 +67,5 @@ def upload_files_s3(directory_path):
             continue
         file_path = os.path.join(directory_path, filename)
         s3_key = "amplitude/%s" % filename
-        s3_client.upload_file(file_path, s3_key, extra_args={'ContentType': 'application/json'})
+        with open(file_path, 'rb') as data:
+            s3_client.upload_fileobj(data, bucket, s3_key, ExtraArgs={'ContentType': 'application/json'})
